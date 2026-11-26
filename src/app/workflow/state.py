@@ -2,6 +2,7 @@ from typing import Annotated, TypedDict
 
 from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
+from pydantic import BaseModel
 
 
 def add_summary(old_summary : str , new_summary : str):
@@ -13,3 +14,5 @@ class MainState(TypedDict):
     messages : Annotated[list[BaseMessage] , add_messages]
     summary : Annotated[str , add_summary]
     
+class SummarySchema(BaseModel):
+    summary: str

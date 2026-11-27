@@ -23,6 +23,7 @@ class EpisodicMemoryExtractor(BaseModel):
         description="A list of chronological events extracted from the conversation log."
     )
 
+
 async def store_episodic_memory(
     user_id: str,
     thread_id: str,
@@ -61,32 +62,28 @@ async def store_episodic_memory(
     stored_count = 0
     current_time_str = datetime.now(UTC).isoformat()
 
-    async with store:
-        for event in extraction_plan.events:
-            memory_id = str(uuid.uuid4())
+    for event in extraction_plan.events:
+        memory_id = str(uuid.uuid4())
 
-            memory_value = {
-                "content": event.content, 
-                "importance": event.importance_score,
-                "source_thread_id": thread_id, 
-                "timestamp": current_time_str,
-                "category": "episodic_log",
-            }
-            await store.aput(namespace=namespace, key=memory_id, value=memory_value)
-            stored_count += 1
+        memory_value = {
+            "content": event.content,
+            "importance": event.importance_score,
+            "source_thread_id": thread_id,
+            "timestamp": current_time_str,
+            "category": "episodic_log",
+        }
+        await store.aput(namespace=namespace, key=memory_id, value=memory_value)
+        stored_count += 1
 
     return stored_count
 
 
-async def fetch_episodic_memory(
-    user_id: str, query: str, store: BaseStore
-):
-    async with store:
-        episodes = await store.asearch(
-            namespace=("users", user_id, "episodic"),
-            query=query,  
-            limit=3,
-        )
+async def fetch_episodic_memory(user_id: str, query: str, store: BaseStore):
+    episodes = await store.asearch(
+        namespace=("users", user_id, "episodic"),
+        query=query,
+        limit=3,
+    )
     results = []
     for episode in episodes:
         result = {}
@@ -103,8 +100,7 @@ async def delete_episodic_memory(
     store: BaseStore,
 ):
     namespace = ("users", user_id, "episodic")
-    async with store:
-        try:
-            await store.adelete(namespace, key)
-        except Exception as e:
-            return e
+    try:
+        await store.adelete(namespace, key)
+    except Exception as e:
+        return e
